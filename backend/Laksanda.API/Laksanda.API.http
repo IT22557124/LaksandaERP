@@ -1,0 +1,6 @@
+@Laksanda.API_HostAddress = http://localhost:5027
+
+GET {{Laksanda.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

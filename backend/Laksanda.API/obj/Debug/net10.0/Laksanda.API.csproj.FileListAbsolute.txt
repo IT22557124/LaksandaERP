@@ -30,7 +30,6 @@ D:\Coding\LaksandaERP\backend\Laksanda.API\obj\Debug\net10.0\refint\Laksanda.API
 D:\Coding\LaksandaERP\backend\Laksanda.API\obj\Debug\net10.0\Laksanda.API.pdb
 D:\Coding\LaksandaERP\backend\Laksanda.API\obj\Debug\net10.0\Laksanda.API.genruntimeconfig.cache
 D:\Coding\LaksandaERP\backend\Laksanda.API\obj\Debug\net10.0\ref\Laksanda.API.dll
-d:\Coding\LaksandaERP\backend\Laksanda.API\obj\Debug\net10.0\Laksanda.API.sourcelink.json
 d:\Coding\LaksandaERP\backend\Laksanda.API\bin\Debug\net10.0\Humanizer.dll
 d:\Coding\LaksandaERP\backend\Laksanda.API\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 d:\Coding\LaksandaERP\backend\Laksanda.API\bin\Debug\net10.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll

@@ -12,6 +12,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     {
     }
 
+    public DbSet<RawMaterial> RawMaterials => Set<RawMaterial>();
+
     public DbSet<Product> Products => Set<Product>();
 
     public DbSet<Customer> Customers => Set<Customer>();
@@ -21,6 +23,34 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<RawMaterial>(entity =>
+        {
+            entity.HasKey(x => x.RawMaterialId);
+
+            entity.Property(x => x.MaterialCode)
+                .HasMaxLength(20)
+                .IsRequired();
+
+            entity.Property(x => x.MaterialName)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(x => x.Unit)
+                .HasMaxLength(50);
+
+            entity.Property(x => x.CurrentStock)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.ReorderLevel)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.Cost)
+                .HasPrecision(18, 2);
+
+            entity.HasIndex(x => x.MaterialCode)
+                .IsUnique();
+        });
 
         builder.Entity<Product>(entity =>
         {

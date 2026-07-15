@@ -12,6 +12,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     {
     }
 
+    public DbSet<Product> Products => Set<Product>();
+
     public DbSet<Customer> Customers => Set<Customer>();
 
     public DbSet<Supplier> Suppliers => Set<Supplier>();
@@ -19,6 +21,37 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<Product>(entity =>
+        {
+            entity.HasKey(x => x.ProductId);
+
+            entity.Property(x => x.ProductCode)
+                .HasMaxLength(20)
+                .IsRequired();
+
+            entity.Property(x => x.ProductName)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(x => x.Category)
+                .HasMaxLength(100);
+
+            entity.Property(x => x.Unit)
+                .HasMaxLength(50);
+
+            entity.Property(x => x.SellingPrice)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.Barcode)
+                .HasMaxLength(100);
+
+            entity.HasIndex(x => x.ProductCode)
+                .IsUnique();
+
+            entity.HasIndex(x => x.Barcode)
+                .IsUnique();
+        });
 
         builder.Entity<Customer>(entity =>
         {

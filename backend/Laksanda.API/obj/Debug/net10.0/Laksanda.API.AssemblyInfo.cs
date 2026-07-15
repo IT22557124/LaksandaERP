@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Laksanda.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+05f4cb3c94d77054a85aa068fb99882e3756f51e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f3511da554170920fee93888db4d63f3d18b78d3")]
 [assembly: System.Reflection.AssemblyProductAttribute("Laksanda.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Laksanda.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

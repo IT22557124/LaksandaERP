@@ -1,5 +1,9 @@
 using System.Text;
 using Laksanda.API.Data;
+using Laksanda.API.Application.Interfaces.Repositories;
+using Laksanda.API.Application.Interfaces.Services;
+using Laksanda.API.Application.Services;
+using Laksanda.API.Infrastructure.Repositories;
 using Laksanda.API.Models.Identity;
 using Laksanda.API.Options;
 using Laksanda.API.Services;
@@ -75,6 +79,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

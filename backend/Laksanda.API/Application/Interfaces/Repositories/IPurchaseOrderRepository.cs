@@ -8,9 +8,15 @@ public interface IPurchaseOrderRepository
 
     Task<PurchaseOrder?> GetByIdAsync(Guid purchaseOrderId, CancellationToken cancellationToken = default);
 
+    Task<PurchaseOrder?> GetByIdForUpdateAsync(Guid purchaseOrderId, CancellationToken cancellationToken = default);
+
     Task<PurchaseOrder?> GetByPONumberAsync(string poNumber, CancellationToken cancellationToken = default);
 
     Task AddAsync(PurchaseOrder purchaseOrder, CancellationToken cancellationToken = default);
+
+    Task DeleteItemsByPurchaseOrderIdAsync(Guid purchaseOrderId, CancellationToken cancellationToken = default);
+
+    Task AddItemsAsync(IEnumerable<PurchaseOrderItem> items, CancellationToken cancellationToken = default);
 
     void Update(PurchaseOrder purchaseOrder);
 

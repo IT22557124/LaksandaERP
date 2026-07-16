@@ -16,6 +16,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
     public DbSet<PurchaseOrderItem> PurchaseOrderItems => Set<PurchaseOrderItem>();
 
+    public DbSet<GoodsReceivedNote> GoodsReceivedNotes => Set<GoodsReceivedNote>();
+
+    public DbSet<GoodsReceivedNoteItem> GoodsReceivedNoteItems => Set<GoodsReceivedNoteItem>();
+
     public DbSet<RawMaterial> RawMaterials => Set<RawMaterial>();
 
     public DbSet<Product> Products => Set<Product>();
@@ -61,6 +65,50 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             entity.HasOne(x => x.PurchaseOrder)
                 .WithMany(x => x.Items)
                 .HasForeignKey(x => x.PurchaseOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.RawMaterial)
+                .WithMany()
+                .HasForeignKey(x => x.RawMaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<GoodsReceivedNote>(entity =>
+        {
+            entity.HasKey(x => x.GoodsReceivedNoteId);
+
+            entity.Property(x => x.GRNNumber)
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(x => x.ReceivedDate)
+                .HasColumnType("timestamp without time zone");
+
+            entity.Property(x => x.Remarks)
+                .HasMaxLength(500);
+
+            entity.HasOne(x => x.PurchaseOrder)
+                .WithMany()
+                .HasForeignKey(x => x.PurchaseOrderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x => x.GRNNumber)
+                .IsUnique();
+        });
+
+        builder.Entity<GoodsReceivedNoteItem>(entity =>
+        {
+            entity.HasKey(x => x.GoodsReceivedNoteItemId);
+
+            entity.Property(x => x.ReceivedQuantity)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.UnitCost)
+                .HasPrecision(18, 2);
+
+            entity.HasOne(x => x.GoodsReceivedNote)
+                .WithMany(x => x.Items)
+                .HasForeignKey(x => x.GoodsReceivedNoteId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(x => x.RawMaterial)

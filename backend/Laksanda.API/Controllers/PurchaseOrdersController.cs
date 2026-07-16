@@ -2,6 +2,7 @@ using Laksanda.API.Application.DTOs.PurchaseOrders;
 using Laksanda.API.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Laksanda.API.Controllers;
 
@@ -47,6 +48,10 @@ public class PurchaseOrdersController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(new { message = ex.Message });
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Conflict(new { message = "Purchase order was modified or removed by another operation. Refresh and try again." });
         }
     }
 

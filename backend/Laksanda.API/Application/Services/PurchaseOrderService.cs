@@ -98,7 +98,7 @@ public class PurchaseOrderService : IPurchaseOrderService
             throw new ArgumentException(string.Join(" | ", errors));
         }
 
-        var purchaseOrder = await _purchaseOrderRepository.GetByIdAsync(purchaseOrderId, cancellationToken);
+        var purchaseOrder = await _purchaseOrderRepository.GetByIdForUpdateAsync(purchaseOrderId, cancellationToken);
         if (purchaseOrder is null)
         {
             return null;
@@ -139,13 +139,15 @@ public class PurchaseOrderService : IPurchaseOrderService
         purchaseOrder.OrderDate = request.OrderDate;
         purchaseOrder.Status = request.Status;
 
-        purchaseOrder.Items.Clear();
+        await _purchaseOrderRepository.DeleteItemsByPurchaseOrderIdAsync(purchaseOrderId, cancellationToken);
+
         foreach (var item in newItems)
         {
-            purchaseOrder.Items.Add(item);
+            item.PurchaseOrderId = purchaseOrderId;
         }
 
-        _purchaseOrderRepository.Update(purchaseOrder);
+        await _purchaseOrderRepository.AddItemsAsync(newItems, cancellationToken);
+
         await _purchaseOrderRepository.SaveChangesAsync(cancellationToken);
 
         var savedPurchaseOrder = await _purchaseOrderRepository.GetByIdAsync(purchaseOrderId, cancellationToken)

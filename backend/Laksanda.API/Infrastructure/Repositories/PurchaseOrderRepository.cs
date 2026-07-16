@@ -34,6 +34,12 @@ public class PurchaseOrderRepository : IPurchaseOrderRepository
             .FirstOrDefaultAsync(x => x.PurchaseOrderId == purchaseOrderId, cancellationToken);
     }
 
+    public Task<PurchaseOrder?> GetByIdForUpdateAsync(Guid purchaseOrderId, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.PurchaseOrders
+            .FirstOrDefaultAsync(x => x.PurchaseOrderId == purchaseOrderId, cancellationToken);
+    }
+
     public Task<PurchaseOrder?> GetByPONumberAsync(string poNumber, CancellationToken cancellationToken = default)
     {
         return _dbContext.PurchaseOrders
@@ -43,6 +49,18 @@ public class PurchaseOrderRepository : IPurchaseOrderRepository
     public async Task AddAsync(PurchaseOrder purchaseOrder, CancellationToken cancellationToken = default)
     {
         await _dbContext.PurchaseOrders.AddAsync(purchaseOrder, cancellationToken);
+    }
+
+    public Task DeleteItemsByPurchaseOrderIdAsync(Guid purchaseOrderId, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.PurchaseOrderItems
+            .Where(x => x.PurchaseOrderId == purchaseOrderId)
+            .ExecuteDeleteAsync(cancellationToken);
+    }
+
+    public Task AddItemsAsync(IEnumerable<PurchaseOrderItem> items, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.PurchaseOrderItems.AddRangeAsync(items, cancellationToken);
     }
 
     public void Update(PurchaseOrder purchaseOrder)

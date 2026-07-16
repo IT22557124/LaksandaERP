@@ -12,6 +12,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     {
     }
 
+    public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
+
+    public DbSet<PurchaseOrderItem> PurchaseOrderItems => Set<PurchaseOrderItem>();
+
     public DbSet<RawMaterial> RawMaterials => Set<RawMaterial>();
 
     public DbSet<Product> Products => Set<Product>();
@@ -23,6 +27,47 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<PurchaseOrder>(entity =>
+        {
+            entity.HasKey(x => x.PurchaseOrderId);
+
+            entity.Property(x => x.PONumber)
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(x => x.OrderDate)
+                .HasColumnType("timestamp without time zone");
+
+            entity.HasOne(x => x.Supplier)
+                .WithMany()
+                .HasForeignKey(x => x.SupplierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(x => x.PONumber)
+                .IsUnique();
+        });
+
+        builder.Entity<PurchaseOrderItem>(entity =>
+        {
+            entity.HasKey(x => x.PurchaseOrderItemId);
+
+            entity.Property(x => x.Quantity)
+                .HasPrecision(18, 2);
+
+            entity.Property(x => x.Price)
+                .HasPrecision(18, 2);
+
+            entity.HasOne(x => x.PurchaseOrder)
+                .WithMany(x => x.Items)
+                .HasForeignKey(x => x.PurchaseOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.RawMaterial)
+                .WithMany()
+                .HasForeignKey(x => x.RawMaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
         builder.Entity<RawMaterial>(entity =>
         {

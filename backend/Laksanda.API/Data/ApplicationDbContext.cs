@@ -20,6 +20,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
     public DbSet<GoodsReceivedNoteItem> GoodsReceivedNoteItems => Set<GoodsReceivedNoteItem>();
 
+    public DbSet<Recipe> Recipes => Set<Recipe>();
+
+    public DbSet<RecipeItem> RecipeItems => Set<RecipeItem>();
+
     public DbSet<RawMaterial> RawMaterials => Set<RawMaterial>();
 
     public DbSet<Product> Products => Set<Product>();
@@ -109,6 +113,43 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             entity.HasOne(x => x.GoodsReceivedNote)
                 .WithMany(x => x.Items)
                 .HasForeignKey(x => x.GoodsReceivedNoteId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(x => x.RawMaterial)
+                .WithMany()
+                .HasForeignKey(x => x.RawMaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<Recipe>(entity =>
+        {
+            entity.HasKey(x => x.RecipeId);
+
+            entity.Property(x => x.RecipeCode)
+                .HasMaxLength(20)
+                .IsRequired();
+
+            entity.Property(x => x.RecipeName)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(x => x.Description)
+                .HasMaxLength(500);
+
+            entity.HasIndex(x => x.RecipeCode)
+                .IsUnique();
+        });
+
+        builder.Entity<RecipeItem>(entity =>
+        {
+            entity.HasKey(x => x.RecipeItemId);
+
+            entity.Property(x => x.Quantity)
+                .HasPrecision(18, 2);
+
+            entity.HasOne(x => x.Recipe)
+                .WithMany(x => x.Items)
+                .HasForeignKey(x => x.RecipeId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(x => x.RawMaterial)

@@ -10,7 +10,9 @@ public class RecipeItemDto
 
     public string RawMaterialName { get; set; } = string.Empty;
 
-    public string? Unit { get; set; }
+    public decimal Percentage { get; set; }
 
     public decimal Quantity { get; set; }
+
+    public string Unit { get; set; } = string.Empty;
 }

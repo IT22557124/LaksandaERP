@@ -1,4 +1,5 @@
 using System.Text;
+using FluentValidation;
 using Laksanda.API.Data;
 using Laksanda.API.Application.Interfaces.Repositories;
 using Laksanda.API.Application.Interfaces.Services;
@@ -94,6 +95,8 @@ builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddAutoMapper(_ => { }, typeof(Program));
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

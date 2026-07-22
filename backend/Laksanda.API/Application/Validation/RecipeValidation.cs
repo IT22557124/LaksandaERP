@@ -1,80 +1,132 @@
+using FluentValidation;
 using Laksanda.API.Application.DTOs.Recipes;
 
 namespace Laksanda.API.Application.Validation;
 
-public static class RecipeValidation
+public class CreateRecipeRequestValidator : AbstractValidator<CreateRecipeRequest>
 {
-    public static IReadOnlyList<string> ValidateForCreate(CreateRecipeRequest request)
+    public CreateRecipeRequestValidator()
     {
-        return Validate(
-            request.RecipeCode,
-            request.RecipeName,
-            request.Description,
-            request.Items.Select(x => (x.RawMaterialId, x.Quantity)).ToArray());
+        RuleFor(x => x.RecipeCode)
+            .NotEmpty()
+            .MaximumLength(20);
+
+        RuleFor(x => x.RecipeName)
+            .NotEmpty()
+            .MaximumLength(200);
+
+        RuleFor(x => x.Description)
+            .MaximumLength(500);
+
+        RuleFor(x => x.Items)
+            .NotEmpty()
+            .Must(NotContainDuplicateRawMaterials)
+            .WithMessage("Duplicate raw material items are not allowed in a recipe.")
+            .Must(HaveTotalPercentageExactlyHundred)
+            .WithMessage("Total recipe item percentage must equal exactly 100.");
+
+        RuleForEach(x => x.Items)
+            .SetValidator(new CreateRecipeItemRequestValidator());
     }
 
-    public static IReadOnlyList<string> ValidateForUpdate(UpdateRecipeRequest request)
+    private static bool NotContainDuplicateRawMaterials(IEnumerable<CreateRecipeItemRequest> items)
     {
-        return Validate(
-            request.RecipeCode,
-            request.RecipeName,
-            request.Description,
-            request.Items.Select(x => (x.RawMaterialId, x.Quantity)).ToArray());
-    }
-
-    private static IReadOnlyList<string> Validate(
-        string recipeCode,
-        string recipeName,
-        string? description,
-        IReadOnlyCollection<(Guid RawMaterialId, decimal Quantity)> items)
-    {
-        var errors = new List<string>();
-
-        if (string.IsNullOrWhiteSpace(recipeCode))
-        {
-            errors.Add("RecipeCode is required.");
-        }
-
-        if (string.IsNullOrWhiteSpace(recipeName))
-        {
-            errors.Add("RecipeName is required.");
-        }
-
-        if (!string.IsNullOrWhiteSpace(description) && description.Length > 500)
-        {
-            errors.Add("Description must be 500 characters or less.");
-        }
-
-        if (items.Count == 0)
-        {
-            errors.Add("At least one recipe item is required.");
-        }
-
         var duplicateMaterialIds = items
             .Where(x => x.RawMaterialId != Guid.Empty)
             .GroupBy(x => x.RawMaterialId)
-            .Where(x => x.Count() > 1)
-            .Select(x => x.Key)
-            .ToArray();
+            .Any(x => x.Count() > 1);
 
-        if (duplicateMaterialIds.Length > 0)
-        {
-            errors.Add("Duplicate raw material items are not allowed in a recipe.");
-        }
+        return !duplicateMaterialIds;
+    }
 
-        foreach (var item in items)
-        {
-            if (item.RawMaterialId == Guid.Empty)
-            {
-                errors.Add("Item material is required.");
-            }
+    private static bool HaveTotalPercentageExactlyHundred(IEnumerable<CreateRecipeItemRequest> items)
+    {
+        return items.Sum(x => x.Percentage) == 100m;
+    }
+}
 
-            if (item.Quantity <= 0)
-            {
-                errors.Add("Item quantity must be greater than zero.");
-            }
-        }
+public class UpdateRecipeRequestValidator : AbstractValidator<UpdateRecipeRequest>
+{
+    public UpdateRecipeRequestValidator()
+    {
+        RuleFor(x => x.RecipeCode)
+            .NotEmpty()
+            .MaximumLength(20);
 
-        return errors;
+        RuleFor(x => x.RecipeName)
+            .NotEmpty()
+            .MaximumLength(200);
+
+        RuleFor(x => x.Description)
+            .MaximumLength(500);
+
+        RuleFor(x => x.Items)
+            .NotEmpty()
+            .Must(NotContainDuplicateRawMaterials)
+            .WithMessage("Duplicate raw material items are not allowed in a recipe.")
+            .Must(HaveTotalPercentageExactlyHundred)
+            .WithMessage("Total recipe item percentage must equal exactly 100.");
+
+        RuleForEach(x => x.Items)
+            .SetValidator(new UpdateRecipeItemRequestValidator());
+    }
+
+    private static bool NotContainDuplicateRawMaterials(IEnumerable<UpdateRecipeItemRequest> items)
+    {
+        var duplicateMaterialIds = items
+            .Where(x => x.RawMaterialId != Guid.Empty)
+            .GroupBy(x => x.RawMaterialId)
+            .Any(x => x.Count() > 1);
+
+        return !duplicateMaterialIds;
+    }
+
+    private static bool HaveTotalPercentageExactlyHundred(IEnumerable<UpdateRecipeItemRequest> items)
+    {
+        return items.Sum(x => x.Percentage) == 100m;
+    }
+}
+
+public class CreateRecipeItemRequestValidator : AbstractValidator<CreateRecipeItemRequest>
+{
+    public CreateRecipeItemRequestValidator()
+    {
+        RuleFor(x => x.RawMaterialId)
+            .NotEmpty()
+            .WithMessage("Item material is required.");
+
+        RuleFor(x => x.Percentage)
+            .GreaterThan(0)
+            .LessThanOrEqualTo(100);
+
+        RuleFor(x => x.Quantity)
+            .GreaterThan(0)
+            .WithMessage("Item quantity must be greater than zero.");
+
+        RuleFor(x => x.Unit)
+            .NotEmpty()
+            .MaximumLength(50);
+    }
+}
+
+public class UpdateRecipeItemRequestValidator : AbstractValidator<UpdateRecipeItemRequest>
+{
+    public UpdateRecipeItemRequestValidator()
+    {
+        RuleFor(x => x.RawMaterialId)
+            .NotEmpty()
+            .WithMessage("Item material is required.");
+
+        RuleFor(x => x.Percentage)
+            .GreaterThan(0)
+            .LessThanOrEqualTo(100);
+
+        RuleFor(x => x.Quantity)
+            .GreaterThan(0)
+            .WithMessage("Item quantity must be greater than zero.");
+
+        RuleFor(x => x.Unit)
+            .NotEmpty()
+            .MaximumLength(50);
     }
 }

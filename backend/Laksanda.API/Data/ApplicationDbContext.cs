@@ -144,8 +144,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         {
             entity.HasKey(x => x.RecipeItemId);
 
+            entity.Property(x => x.Percentage)
+                .HasPrecision(5, 2);
+
             entity.Property(x => x.Quantity)
                 .HasPrecision(18, 2);
+
+            entity.Property(x => x.Unit)
+                .HasMaxLength(50)
+                .IsRequired();
 
             entity.HasOne(x => x.Recipe)
                 .WithMany(x => x.Items)

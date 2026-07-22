@@ -12,5 +12,9 @@ public class RecipeItem
 
     public RawMaterial? RawMaterial { get; set; }
 
+    public decimal Percentage { get; set; }
+
     public decimal Quantity { get; set; }
+
+    public string Unit { get; set; } = string.Empty;
 }

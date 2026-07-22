@@ -1,7 +1,8 @@
+using AutoMapper;
+using FluentValidation;
 using Laksanda.API.Application.DTOs.Recipes;
 using Laksanda.API.Application.Interfaces.Repositories;
 using Laksanda.API.Application.Interfaces.Services;
-using Laksanda.API.Application.Validation;
 using Laksanda.API.Domain.Entities;
 
 namespace Laksanda.API.Application.Services;
@@ -10,31 +11,42 @@ public class RecipeService : IRecipeService
 {
     private readonly IRecipeRepository _recipeRepository;
     private readonly IRawMaterialRepository _rawMaterialRepository;
+    private readonly IValidator<CreateRecipeRequest> _createValidator;
+    private readonly IValidator<UpdateRecipeRequest> _updateValidator;
+    private readonly IMapper _mapper;
 
-    public RecipeService(IRecipeRepository recipeRepository, IRawMaterialRepository rawMaterialRepository)
+    public RecipeService(
+        IRecipeRepository recipeRepository,
+        IRawMaterialRepository rawMaterialRepository,
+        IValidator<CreateRecipeRequest> createValidator,
+        IValidator<UpdateRecipeRequest> updateValidator,
+        IMapper mapper)
     {
         _recipeRepository = recipeRepository;
         _rawMaterialRepository = rawMaterialRepository;
+        _createValidator = createValidator;
+        _updateValidator = updateValidator;
+        _mapper = mapper;
     }
 
     public async Task<IReadOnlyList<RecipeDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var recipes = await _recipeRepository.GetAllAsync(cancellationToken);
-        return recipes.Select(MapToDto).ToArray();
+        return _mapper.Map<IReadOnlyList<RecipeDto>>(recipes);
     }
 
     public async Task<RecipeDto?> GetByIdAsync(Guid recipeId, CancellationToken cancellationToken = default)
     {
         var recipe = await _recipeRepository.GetByIdAsync(recipeId, cancellationToken);
-        return recipe is null ? null : MapToDto(recipe);
+        return recipe is null ? null : _mapper.Map<RecipeDto>(recipe);
     }
 
     public async Task<RecipeDto> CreateAsync(CreateRecipeRequest request, CancellationToken cancellationToken = default)
     {
-        var errors = RecipeValidation.ValidateForCreate(request);
-        if (errors.Count > 0)
+        var validationResult = await _createValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
         {
-            throw new ArgumentException(string.Join(" | ", errors));
+            throw new ArgumentException(string.Join(" | ", validationResult.Errors.Select(x => x.ErrorMessage).Distinct()));
         }
 
         var normalizedCode = request.RecipeCode.Trim();
@@ -53,11 +65,8 @@ public class RecipeService : IRecipeService
                 throw new ArgumentException($"Material '{item.RawMaterialId}' not found.");
             }
 
-            items.Add(new RecipeItem
-            {
-                RawMaterialId = item.RawMaterialId,
-                Quantity = item.Quantity
-            });
+            var recipeItem = _mapper.Map<RecipeItem>(item);
+            items.Add(recipeItem);
         }
 
         var recipe = new Recipe
@@ -74,15 +83,15 @@ public class RecipeService : IRecipeService
         var savedRecipe = await _recipeRepository.GetByIdAsync(recipe.RecipeId, cancellationToken)
             ?? recipe;
 
-        return MapToDto(savedRecipe);
+        return _mapper.Map<RecipeDto>(savedRecipe);
     }
 
     public async Task<RecipeDto?> UpdateAsync(Guid recipeId, UpdateRecipeRequest request, CancellationToken cancellationToken = default)
     {
-        var errors = RecipeValidation.ValidateForUpdate(request);
-        if (errors.Count > 0)
+        var validationResult = await _updateValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
         {
-            throw new ArgumentException(string.Join(" | ", errors));
+            throw new ArgumentException(string.Join(" | ", validationResult.Errors.Select(x => x.ErrorMessage).Distinct()));
         }
 
         var recipe = await _recipeRepository.GetByIdForUpdateAsync(recipeId, cancellationToken);
@@ -107,12 +116,9 @@ public class RecipeService : IRecipeService
                 throw new ArgumentException($"Material '{item.RawMaterialId}' not found.");
             }
 
-            newItems.Add(new RecipeItem
-            {
-                RecipeId = recipeId,
-                RawMaterialId = item.RawMaterialId,
-                Quantity = item.Quantity
-            });
+            var recipeItem = _mapper.Map<RecipeItem>(item);
+            recipeItem.RecipeId = recipeId;
+            newItems.Add(recipeItem);
         }
 
         recipe.RecipeCode = normalizedCode;
@@ -126,7 +132,7 @@ public class RecipeService : IRecipeService
         var savedRecipe = await _recipeRepository.GetByIdAsync(recipeId, cancellationToken)
             ?? recipe;
 
-        return MapToDto(savedRecipe);
+        return _mapper.Map<RecipeDto>(savedRecipe);
     }
 
     public async Task<bool> DeleteAsync(Guid recipeId, CancellationToken cancellationToken = default)
@@ -140,25 +146,5 @@ public class RecipeService : IRecipeService
         _recipeRepository.Delete(recipe);
         await _recipeRepository.SaveChangesAsync(cancellationToken);
         return true;
-    }
-
-    private static RecipeDto MapToDto(Recipe recipe)
-    {
-        return new RecipeDto
-        {
-            RecipeId = recipe.RecipeId,
-            RecipeCode = recipe.RecipeCode,
-            RecipeName = recipe.RecipeName,
-            Description = recipe.Description,
-            Items = recipe.Items.Select(item => new RecipeItemDto
-            {
-                RecipeItemId = item.RecipeItemId,
-                RawMaterialId = item.RawMaterialId,
-                RawMaterialCode = item.RawMaterial?.MaterialCode ?? string.Empty,
-                RawMaterialName = item.RawMaterial?.MaterialName ?? string.Empty,
-                Unit = item.RawMaterial?.Unit,
-                Quantity = item.Quantity
-            }).ToArray()
-        };
     }
 }
